@@ -108,23 +108,17 @@
         </div>
     </div>
     
-    <!-- Summary -->
-    <div class="card">
-        <h3>Сводка</h3>
-        <div id="summaryContainer">Нет данных</div>
-    </div>
-    
     <!-- Events -->
     <div class="card">
-        <h3>События (Заправки / Сливы)</h3>
+        <h3>Заправки и сливы</h3>
         <div style="overflow-x: auto;">
             <table id="eventsTable">
                 <thead>
                     <tr>
-                        <th>Время</th>
+                        <th>Дата/время</th>
                         <th>Тип</th>
-                        <th>Объем (л)</th>
-                        <th>Адрес / Координаты</th>
+                        <th>Объем, л</th>
+                        <th>Координаты / Адрес</th>
                         <th>Карта</th>
                     </tr>
                 </thead>
@@ -134,6 +128,68 @@
             </table>
         </div>
     </div>
+
+    <!-- Tank Summary -->
+    <div class="card">
+        <h3>Сводка по бакам</h3>
+        <div style="overflow-x: auto;">
+            <table id="tankSummaryTable" class="report-table">
+                <thead>
+                    <tr>
+                        <th rowspan="2">Баки</th>
+                        <th rowspan="2">Начало, л</th>
+                        <th colspan="2">Заправки</th>
+                        <th colspan="2">Сливы</th>
+                        <th rowspan="2">Конец, л</th>
+                        <th rowspan="2">Расход, л</th>
+                        <th rowspan="2">Пробег, км</th>
+                        <th rowspan="2">Моточасы</th>
+                        <th rowspan="2">Ср. расход, л/100км</th>
+                    </tr>
+                    <tr>
+                        <th>Кол-во</th>
+                        <th>Объем, л</th>
+                        <th>Кол-во</th>
+                        <th>Объем, л</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td colspan="11" style="text-align:center">Нет данных</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Daily Table -->
+    <div class="card">
+        <h3>Суточная таблица</h3>
+        <div style="overflow-x: auto;">
+            <table id="dailyTable" class="report-table">
+                <thead>
+                    <tr>
+                        <th>День</th>
+                        <th>Начало, л</th>
+                        <th>Конец, л</th>
+                        <th>Заправки, л</th>
+                        <th>Сливы, л</th>
+                        <th>Расход, л</th>
+                        <th>Пробег, км</th>
+                        <th>Моточасы</th>
+                        <th>Ср. расход</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td colspan="9" style="text-align:center">Нет данных</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <!-- Old Summary Container (Hidden or Removed, replacing with new tables) -->
+    <!-- <div class="card" style="display:none">
+        <h3>Сводка (Legacy)</h3>
+        <div id="summaryContainer">Нет данных</div>
+    </div> -->
 </div>
 
 <script src="js/config.js"></script>

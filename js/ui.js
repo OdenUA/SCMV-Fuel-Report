@@ -12,8 +12,10 @@ var els = {
     settingsToggle: document.getElementById('settingsToggle'),
     settingsPanel: document.getElementById('settingsPanel'),
     hoverInfo: document.getElementById('hoverInfo'),
-    summary: document.getElementById('summaryContainer'),
+    // summary: document.getElementById('summaryContainer'), // Removed
     eventsTableBody: document.querySelector('#eventsTable tbody'),
+    tankSummaryBody: document.querySelector('#tankSummaryTable tbody'),
+    dailyTableBody: document.querySelector('#dailyTable tbody'),
     
     // Settings
     minRefuel: document.getElementById('minRefuel'),
@@ -31,35 +33,7 @@ for (var key in els) {
 }
 
 function renderTables(data) {
-    // Summary
-    const startL = data[0].liters;
-    const endL = data[data.length-1].liters;
-    
-    const totalRefuel = processedEvents.filter(e => e.type === 'refuel').reduce((sum, e) => sum + e.volume, 0);
-    const totalDrain = processedEvents.filter(e => e.type === 'drain').reduce((sum, e) => sum + e.volume, 0);
-    
-    // Consumption = Start - End + Refuel - Drain
-    const consumption = startL - endL + totalRefuel - totalDrain;
-    
-    // Total Distance
-    const totalDist = data.reduce((sum, d) => sum + d.dist, 0);
-    
-    // Avg Consumption (L/100km)
-    const avgCons = totalDist > 0 ? (consumption / totalDist * 100) : 0;
-    
-    els.summary.innerHTML = `
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-            <div>Начальный уровень: <b>${startL.toFixed(2)} л</b></div>
-            <div>Конечный уровень: <b>${endL.toFixed(2)} л</b></div>
-            <div>Всего заправлено: <b style="color:green">${totalRefuel.toFixed(2)} л</b></div>
-            <div>Всего слито: <b style="color:red">${totalDrain.toFixed(2)} л</b></div>
-            <div>Расход: <b>${consumption.toFixed(2)} л</b></div>
-            <div>Пробег: <b>${totalDist.toFixed(2)} км</b></div>
-            <div>Ср. расход: <b>${avgCons.toFixed(2)} л/100км</b></div>
-        </div>
-    `;
-    
-    // Events Table
+    // --- 1. Events Table ---
     els.eventsTableBody.innerHTML = '';
     if (processedEvents.length === 0) {
         els.eventsTableBody.innerHTML = '<tr><td colspan="5" style="text-align:center">Событий не найдено</td></tr>';
@@ -69,7 +43,6 @@ function renderTables(data) {
             row.className = ev.type === 'refuel' ? 'event-refuel' : 'event-drain';
             row.style.cursor = 'pointer';
             row.onclick = (e) => {
-                // Prevent if clicking on link
                 if (e.target.tagName === 'A') return;
                 focusMapOnPoint(ev.end.lat, ev.end.lon);
             };
@@ -91,9 +64,75 @@ function renderTables(data) {
             els.eventsTableBody.appendChild(row);
         });
         
-        // Trigger address fetch (lazy)
-        if (typeof fetchAddresses === 'function') {
-            fetchAddresses();
-        }
+        if (typeof fetchAddresses === 'function') fetchAddresses();
     }
+
+    // --- 2. Calculate Stats ---
+    const stats = calculateStats(data, processedEvents);
+
+    // --- 3. Tank Summary ---
+    els.tankSummaryBody.innerHTML = `
+        <tr>
+            <td>Топливный бак</td>
+            <td>${stats.total.startL.toFixed(2)}</td>
+            <td>${stats.total.refuelCount}</td>
+            <td>${stats.total.refuelVol.toFixed(2)}</td>
+            <td>${stats.total.drainCount}</td>
+            <td>${stats.total.drainVol.toFixed(2)}</td>
+            <td>${stats.total.endL.toFixed(2)}</td>
+            <td>${stats.total.consumption.toFixed(2)}</td>
+            <td>${stats.total.dist.toFixed(2)}</td>
+            <td>${stats.total.engineHours.toFixed(2)}</td>
+            <td>${stats.total.avgCons.toFixed(2)}</td>
+        </tr>
+        <tr style="font-weight: bold; background: #f9f9f9;">
+            <td>Все</td>
+            <td>${stats.total.startL.toFixed(2)}</td>
+            <td>${stats.total.refuelCount}</td>
+            <td>${stats.total.refuelVol.toFixed(2)}</td>
+            <td>${stats.total.drainCount}</td>
+            <td>${stats.total.drainVol.toFixed(2)}</td>
+            <td>${stats.total.endL.toFixed(2)}</td>
+            <td>${stats.total.consumption.toFixed(2)}</td>
+            <td>${stats.total.dist.toFixed(2)}</td>
+            <td>${stats.total.engineHours.toFixed(2)}</td>
+            <td>${stats.total.avgCons.toFixed(2)}</td>
+        </tr>
+    `;
+
+    // --- 4. Daily Table ---
+    els.dailyTableBody.innerHTML = '';
+    stats.daily.forEach(day => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${day.date}</td>
+            <td>${day.startL.toFixed(2)}</td>
+            <td>${day.endL.toFixed(2)}</td>
+            <td>${day.refuelVol.toFixed(2)}</td>
+            <td>${day.drainVol.toFixed(2)}</td>
+            <td>${day.consumption.toFixed(2)}</td>
+            <td>${day.dist.toFixed(2)}</td>
+            <td>${day.engineHours.toFixed(2)}</td>
+            <td>${day.avgCons.toFixed(2)}</td>
+        `;
+        els.dailyTableBody.appendChild(row);
+    });
+    
+    // Add Total Row to Daily Table
+    const totalRow = document.createElement('tr');
+    totalRow.style.fontWeight = 'bold';
+    totalRow.style.backgroundColor = '#f0f0f0';
+    totalRow.innerHTML = `
+        <td>Итого</td>
+        <td>${stats.total.startL.toFixed(2)}</td>
+        <td>${stats.total.endL.toFixed(2)}</td>
+        <td>${stats.total.refuelVol.toFixed(2)}</td>
+        <td>${stats.total.drainVol.toFixed(2)}</td>
+        <td>${stats.total.consumption.toFixed(2)}</td>
+        <td>${stats.total.dist.toFixed(2)}</td>
+        <td>${stats.total.engineHours.toFixed(2)}</td>
+        <td>${stats.total.avgCons.toFixed(2)}</td>
+    `;
+    els.dailyTableBody.appendChild(totalRow);
+
 }

@@ -204,3 +204,104 @@ function detectEvents(data) {
     
     processedEvents = events;
 }
+
+function calculateStats(data, events) {
+    // Helper to format date key
+    const getDateKey = (d) => {
+        const pad = (n) => n.toString().padStart(2, '0');
+        return `${pad(d.getDate())}.${pad(d.getMonth()+1)}.${d.getFullYear()}`;
+    };
+
+    // Group data by day
+    const days = {};
+    
+    // Initialize days from data points
+    data.forEach(p => {
+        const key = getDateKey(p.dateObj);
+        if (!days[key]) {
+            days[key] = {
+                date: key,
+                points: [],
+                refuels: [],
+                drains: []
+            };
+        }
+        days[key].points.push(p);
+    });
+
+    // Distribute events to days (based on end time)
+    events.forEach(ev => {
+        const key = getDateKey(ev.end.dateObj);
+        if (days[key]) {
+            if (ev.type === 'refuel') days[key].refuels.push(ev);
+            else days[key].drains.push(ev);
+        }
+    });
+
+    // Calculate stats for each day
+    const dailyStats = Object.values(days).map(day => {
+        const startL = day.points[0].liters;
+        const endL = day.points[day.points.length-1].liters;
+        
+        const refuelVol = day.refuels.reduce((sum, e) => sum + e.volume, 0);
+        const drainVol = day.drains.reduce((sum, e) => sum + e.volume, 0);
+        
+        // Consumption = Start - End + Refuel - Drain
+        // Note: This formula implicitly includes "unknown loss" (e.g. gaps) as consumption
+        const consumption = startL - endL + refuelVol - drainVol;
+        
+        const dist = day.points.reduce((sum, p) => sum + p.dist, 0);
+        const engineHours = day.points.reduce((sum, p) => sum + p.timeDiff, 0);
+        
+        const avgCons = dist > 0 ? (consumption / dist * 100) : 0;
+
+        return {
+            date: day.date,
+            startL, endL,
+            refuelVol, drainVol,
+            consumption, dist, engineHours, avgCons,
+            // Raw counts for total
+            refuelCount: day.refuels.length,
+            drainCount: day.drains.length
+        };
+    });
+
+    // Sort by date (assuming keys are DD.MM.YYYY, we need to parse to sort correctly)
+    dailyStats.sort((a, b) => {
+        const [d1, m1, y1] = a.date.split('.').map(Number);
+        const [d2, m2, y2] = b.date.split('.').map(Number);
+        return new Date(y1, m1-1, d1) - new Date(y2, m2-1, d2);
+    });
+
+    // Calculate Total Stats
+    // Note: Total Start is Start of First Day, Total End is End of Last Day
+    // But we should use the global data array for absolute start/end to be precise
+    const totalStartL = data[0].liters;
+    const totalEndL = data[data.length-1].liters;
+    
+    const totalRefuelVol = events.filter(e => e.type === 'refuel').reduce((sum, e) => sum + e.volume, 0);
+    const totalDrainVol = events.filter(e => e.type === 'drain').reduce((sum, e) => sum + e.volume, 0);
+    const totalRefuelCount = events.filter(e => e.type === 'refuel').length;
+    const totalDrainCount = events.filter(e => e.type === 'drain').length;
+    
+    const totalConsumption = totalStartL - totalEndL + totalRefuelVol - totalDrainVol;
+    const totalDist = data.reduce((sum, p) => sum + p.dist, 0);
+    const totalEngineHours = data.reduce((sum, p) => sum + p.timeDiff, 0);
+    const totalAvgCons = totalDist > 0 ? (totalConsumption / totalDist * 100) : 0;
+
+    return {
+        daily: dailyStats,
+        total: {
+            startL: totalStartL,
+            endL: totalEndL,
+            refuelVol: totalRefuelVol,
+            refuelCount: totalRefuelCount,
+            drainVol: totalDrainVol,
+            drainCount: totalDrainCount,
+            consumption: totalConsumption,
+            dist: totalDist,
+            engineHours: totalEngineHours,
+            avgCons: totalAvgCons
+        }
+    };
+}
