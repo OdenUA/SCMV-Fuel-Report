@@ -175,8 +175,49 @@ function renderMap(data) {
     
     // Draw last segment
     if (currentSegment.length > 1) {
-        L.polyline(currentSegment, {color: 'blue', weight: 3, opacity: 0.7}).addTo(trackLayer);
+        const pl = L.polyline(currentSegment, {color: 'blue', weight: 3, opacity: 0.7}).addTo(trackLayer);
     }
+
+    // Add Direction Arrows
+    // We collect all valid segments to decorate
+    const allSegments = [];
+    let tempSeg = [];
+    for (let i = 0; i < data.length; i++) {
+        const p = data[i];
+        if (i === 0) {
+            tempSeg.push([p.lat, p.lon]);
+            continue;
+        }
+        const prev = data[i-1];
+        const timeDiff = p.ts - prev.ts;
+        if (timeDiff > GAP_THRESHOLD_MS || p.dist > GAP_DISTANCE_KM) {
+            if (tempSeg.length > 1) allSegments.push(tempSeg);
+            tempSeg = [[p.lat, p.lon]];
+        } else {
+            tempSeg.push([p.lat, p.lon]);
+        }
+    }
+    if (tempSeg.length > 1) allSegments.push(tempSeg);
+
+    // Create decorator
+    if (decoratorLayer) {
+        map.removeLayer(decoratorLayer);
+    }
+    
+    const multiPolyline = L.polyline(allSegments);
+    decoratorLayer = L.polylineDecorator(multiPolyline, {
+        patterns: [
+            {
+                offset: '5%',
+                repeat: '100px', // Repeat every 100 pixels
+                symbol: L.Symbol.arrowHead({
+                    pixelSize: 10,
+                    polygon: false,
+                    pathOptions: { stroke: true, color: '#0d6efd', opacity: 0.8, weight: 2 }
+                })
+            }
+        ]
+    }).addTo(map);
     
     // Fit bounds
     if (data.length > 0) {
