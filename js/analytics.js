@@ -15,6 +15,9 @@ function processData(rawData) {
         lon: parseFloat(item.longitude)
     }));
     
+    // Filter invalid coordinates
+    data = data.filter(d => !isNaN(d.lat) && !isNaN(d.lon) && d.lat !== 0 && d.lon !== 0);
+
     // Filter zeros if enabled
     if (els.filterZeros.checked) {
         data = data.filter(d => d.liters > 0.1);
