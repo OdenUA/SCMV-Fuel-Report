@@ -9,30 +9,42 @@ function initMap() {
 
     // Map Hover Interaction (Show fuel on route)
     // We use a "closest point" approach on mousemove
+    let lastMoveTime = 0;
     map.on('mousemove', function(e) {
+        const now = Date.now();
+        if (now - lastMoveTime < 40) return; // Limit to ~25fps
+        lastMoveTime = now;
+
         if (!currentData || currentData.length === 0) return;
-        
-        // Find closest point in data
-        let minDist = Infinity;
-        let closest = null;
-        let closestIdx = -1;
         
         // Optimization: only search if within bounds
         if (!map.getBounds().contains(e.latlng)) return;
+
+        // Find closest point in data
+        // Optimization: Use squared Euclidean distance on lat/lon for speed
+        // instead of heavy distanceTo() (Haversine) in the loop.
+        let minSqDist = Infinity;
+        let closestIdx = -1;
+        const mLat = e.latlng.lat;
+        const mLon = e.latlng.lng;
         
-        // Simple linear search (can be optimized with spatial index for large datasets)
-        currentData.forEach((p, i) => {
-            const d = e.latlng.distanceTo([p.lat, p.lon]);
-            if (d < minDist) {
-                minDist = d;
-                closest = p;
+        for (let i = 0; i < currentData.length; i++) {
+            const p = currentData[i];
+            const dLat = p.lat - mLat;
+            const dLon = p.lon - mLon;
+            const sqDist = dLat*dLat + dLon*dLon;
+            
+            if (sqDist < minSqDist) {
+                minSqDist = sqDist;
                 closestIdx = i;
             }
-        });
+        }
         
-        // If close enough (e.g. 500 meters screen distance equivalent? No, just meters)
-        // Let's say 100 meters radius
-        if (closest && minDist < 500) {
+        const closest = closestIdx !== -1 ? currentData[closestIdx] : null;
+        
+        // Check real distance for the candidate (threshold ~500m)
+        // We only calculate expensive distanceTo ONCE per mousemove
+        if (closest && e.latlng.distanceTo([closest.lat, closest.lon]) < 500) {
             els.hoverInfo.textContent = `Время: ${formatDate(closest.dateObj)} | Топливо: ${closest.liters.toFixed(2)} л | Скорость: ${closest.speed.toFixed(1)} км/ч`;
             
             // Update highlight marker
