@@ -7,14 +7,9 @@ function initMap() {
     trackLayer = L.layerGroup().addTo(map);
     markersLayer = L.layerGroup().addTo(map);
 
-    // Map Hover Interaction (Show fuel on route)
-    // We use a "closest point" approach on mousemove
-    let lastMoveTime = 0;
-    map.on('mousemove', function(e) {
-        const now = Date.now();
-        if (now - lastMoveTime < 40) return; // Limit to ~25fps
-        lastMoveTime = now;
-
+    // Map Click Interaction (Show fuel on route)
+    // We use a "closest point" approach on click
+    map.on('click', function(e) {
         if (!currentData || currentData.length === 0) return;
         
         // Optimization: only search if within bounds
@@ -70,7 +65,6 @@ function initMap() {
         const closest = closestIdx !== -1 ? currentData[closestIdx] : null;
         
         // Check real distance for the candidate (threshold ~500m)
-        // We only calculate expensive distanceTo ONCE per mousemove
         if (closest && e.latlng.distanceTo([closest.lat, closest.lon]) < 500) {
             els.hoverInfo.textContent = `Время: ${formatDate(closest.dateObj)} | Топливо: ${closest.liters.toFixed(2)} л | Скорость: ${closest.speed.toFixed(1)} км/ч`;
             
@@ -94,7 +88,7 @@ function initMap() {
                 fuelChart.update();
             }
         } else {
-            els.hoverInfo.textContent = 'Наведите на маршрут для информации...';
+            els.hoverInfo.textContent = 'Кликните на маршрут для информации...';
             if (mapHighlightMarker) {
                 map.removeLayer(mapHighlightMarker);
                 mapHighlightMarker = null;
