@@ -94,7 +94,8 @@ function renderMap(data) {
         const prev = data[i-1];
         const timeDiff = p.ts - prev.ts;
         
-        if (timeDiff > GAP_THRESHOLD_MS) {
+        // Check for gap (Time or Distance)
+        if (timeDiff > GAP_THRESHOLD_MS || p.dist > GAP_DISTANCE_KM) {
             // Finish current segment (Blue)
             if (currentSegment.length > 1) {
                 L.polyline(currentSegment, {color: 'blue', weight: 3, opacity: 0.7}).addTo(trackLayer);
