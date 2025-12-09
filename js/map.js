@@ -204,20 +204,28 @@ function renderMap(data) {
         map.removeLayer(decoratorLayer);
     }
     
-    const multiPolyline = L.polyline(allSegments);
-    decoratorLayer = L.polylineDecorator(multiPolyline, {
-        patterns: [
-            {
-                offset: '5%',
-                repeat: '100px', // Repeat every 100 pixels
-                symbol: L.Symbol.arrowHead({
-                    pixelSize: 10,
-                    polygon: false,
-                    pathOptions: { stroke: true, color: '#0d6efd', opacity: 0.8, weight: 2 }
-                })
-            }
-        ]
-    }).addTo(map);
+    // Check if plugin is loaded
+    if (L.polylineDecorator && L.Symbol) {
+        const multiPolyline = L.polyline(allSegments);
+        decoratorLayer = L.polylineDecorator(multiPolyline, {
+            patterns: [
+                {
+                    offset: '5%',
+                    repeat: '100px', // Repeat every 100 pixels
+                    symbol: L.Symbol.arrowHead({
+                        pixelSize: 10,
+                        polygon: false,
+                        pathOptions: { stroke: true, color: '#0d6efd', opacity: 0.8, weight: 2 }
+                    })
+                }
+            ]
+        }).addTo(map);
+    } else {
+        console.warn('Leaflet Polyline Decorator plugin not loaded or incompatible', {
+            polylineDecorator: !!L.polylineDecorator,
+            Symbol: !!L.Symbol
+        });
+    }
     
     // Fit bounds
     if (data.length > 0) {
