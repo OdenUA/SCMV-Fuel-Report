@@ -130,6 +130,23 @@ function detectEvents(data) {
     for (let i = 1; i < data.length; i++) {
         const diff = data[i].liters - data[i-1].liters;
         const ts = data[i].ts;
+        const timeDiff = ts - data[i-1].ts;
+
+        // Check for GPS Gap (Missing data)
+        // If there is a large gap, we assume any fuel drop is consumption (or unknown), not a drain.
+        // We also break any current event detection because continuity is lost.
+        if (timeDiff > GAP_THRESHOLD_MS) {
+            if (currentRefuel) {
+                finalizeRefuel(currentRefuel);
+                currentRefuel = null;
+            }
+            if (currentDrain) {
+                finalizeDrain(currentDrain);
+                currentDrain = null;
+            }
+            // Skip this point for event detection (it's a jump)
+            continue;
+        }
 
         // --- Refuel Detection ---
         if (diff > 0) {

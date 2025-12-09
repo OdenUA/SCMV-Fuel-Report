@@ -60,18 +60,71 @@ function initMap() {
     });
 }
 
+function focusMapOnPoint(lat, lon) {
+    if (!map) return;
+    map.setView([lat, lon], 15);
+    
+    // Optional: Add a temporary marker or popup
+    L.popup()
+        .setLatLng([lat, lon])
+        .setContent('Событие здесь')
+        .openOn(map);
+}
+
 function renderMap(data) {
     trackLayer.clearLayers();
     markersLayer.clearLayers();
     
     if (data.length === 0) return;
     
-    // Draw Polyline
-    const latlngs = data.map(d => [d.lat, d.lon]);
-    polyline = L.polyline(latlngs, {color: 'blue', weight: 3, opacity: 0.7}).addTo(trackLayer);
+    // Draw Polyline with Gap Detection
+    // We iterate and build segments. If time diff > GAP_THRESHOLD, we start a new segment.
+    // We also draw a red line for the gap.
+    
+    let currentSegment = [];
+    
+    for (let i = 0; i < data.length; i++) {
+        const p = data[i];
+        
+        if (i === 0) {
+            currentSegment.push([p.lat, p.lon]);
+            continue;
+        }
+        
+        const prev = data[i-1];
+        const timeDiff = p.ts - prev.ts;
+        
+        if (timeDiff > GAP_THRESHOLD_MS) {
+            // Finish current segment (Blue)
+            if (currentSegment.length > 1) {
+                L.polyline(currentSegment, {color: 'blue', weight: 3, opacity: 0.7}).addTo(trackLayer);
+            }
+            
+            // Draw Gap (Red)
+            L.polyline([[prev.lat, prev.lon], [p.lat, p.lon]], {
+                color: 'red', 
+                weight: 3, 
+                opacity: 0.7, 
+                dashArray: '5, 10'
+            }).addTo(trackLayer);
+            
+            // Start new segment
+            currentSegment = [[p.lat, p.lon]];
+        } else {
+            currentSegment.push([p.lat, p.lon]);
+        }
+    }
+    
+    // Draw last segment
+    if (currentSegment.length > 1) {
+        L.polyline(currentSegment, {color: 'blue', weight: 3, opacity: 0.7}).addTo(trackLayer);
+    }
     
     // Fit bounds
-    map.fitBounds(polyline.getBounds());
+    if (data.length > 0) {
+        const bounds = L.latLngBounds(data.map(d => [d.lat, d.lon]));
+        map.fitBounds(bounds);
+    }
     
     // Add Event Markers
     processedEvents.forEach(ev => {

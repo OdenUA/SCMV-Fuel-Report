@@ -66,6 +66,12 @@ function renderTables(data) {
         processedEvents.forEach(ev => {
             const row = document.createElement('tr');
             row.className = ev.type === 'refuel' ? 'event-refuel' : 'event-drain';
+            row.style.cursor = 'pointer';
+            row.onclick = (e) => {
+                // Prevent if clicking on link
+                if (e.target.tagName === 'A') return;
+                focusMapOnPoint(ev.end.lat, ev.end.lon);
+            };
             
             const typeName = ev.type === 'refuel' ? 'Заправка' : 'Слив';
             const coords = `${ev.end.lat.toFixed(5)}, ${ev.end.lon.toFixed(5)}`;
