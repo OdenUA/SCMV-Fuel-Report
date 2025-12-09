@@ -7,26 +7,21 @@ function initMap() {
     trackLayer = L.layerGroup().addTo(map);
     markersLayer = L.layerGroup().addTo(map);
 
-    // Map Click Interaction (Show fuel on route)
-    // We use a "closest point" approach on click
-    map.on('click', function(e) {
-        if (!currentData || currentData.length === 0) return;
-        
-        // Optimization: only search if within bounds
-        if (!map.getBounds().contains(e.latlng)) return;
+    // Helper to find closest point
+    const findClosest = (latlng) => {
+        if (!currentData || currentData.length === 0) return null;
+        if (!map.getBounds().contains(latlng)) return null;
 
-        // Find closest point using Spatial Index
         let minSqDist = Infinity;
         let closestIdx = -1;
-        const mLat = e.latlng.lat;
-        const mLon = e.latlng.lng;
+        const mLat = latlng.lat;
+        const mLon = latlng.lng;
         
         if (spatialIndex) {
             const scale = spatialIndex.scale;
             const x = Math.floor(mLat * scale);
             const y = Math.floor(mLon * scale);
             
-            // Check current cell and 8 neighbors
             for (let dx = -1; dx <= 1; dx++) {
                 for (let dy = -1; dy <= 1; dy++) {
                     const key = `${x+dx},${y+dy}`;
@@ -38,7 +33,6 @@ function initMap() {
                             const dLat = p.lat - mLat;
                             const dLon = p.lon - mLon;
                             const sqDist = dLat*dLat + dLon*dLon;
-                            
                             if (sqDist < minSqDist) {
                                 minSqDist = sqDist;
                                 closestIdx = idx;
@@ -48,13 +42,11 @@ function initMap() {
                 }
             }
         } else {
-            // Fallback to linear search if index not ready
             for (let i = 0; i < currentData.length; i++) {
                 const p = currentData[i];
                 const dLat = p.lat - mLat;
                 const dLon = p.lon - mLon;
                 const sqDist = dLat*dLat + dLon*dLon;
-                
                 if (sqDist < minSqDist) {
                     minSqDist = sqDist;
                     closestIdx = i;
@@ -62,30 +54,38 @@ function initMap() {
             }
         }
         
-        const closest = closestIdx !== -1 ? currentData[closestIdx] : null;
+        if (closestIdx !== -1) {
+            const p = currentData[closestIdx];
+            // Check real distance (threshold ~500m)
+            if (latlng.distanceTo([p.lat, p.lon]) < 500) {
+                return { point: p, index: closestIdx };
+            }
+        }
+        return null;
+    };
+
+    // 1. Mouse Move: Show Info & Marker (No Chart Sync)
+    let lastMoveTime = 0;
+    map.on('mousemove', function(e) {
+        const now = Date.now();
+        if (now - lastMoveTime < 40) return; 
+        lastMoveTime = now;
+
+        const result = findClosest(e.latlng);
         
-        // Check real distance for the candidate (threshold ~500m)
-        if (closest && e.latlng.distanceTo([closest.lat, closest.lon]) < 500) {
-            els.hoverInfo.textContent = `Время: ${formatDate(closest.dateObj)} | Топливо: ${closest.liters.toFixed(2)} л | Скорость: ${closest.speed.toFixed(1)} км/ч`;
+        if (result) {
+            const { point } = result;
+            els.hoverInfo.textContent = `Время: ${formatDate(point.dateObj)} | Топливо: ${point.liters.toFixed(2)} л | Скорость: ${point.speed.toFixed(1)} км/ч`;
             
-            // Update highlight marker
             if (!mapHighlightMarker) {
-                mapHighlightMarker = L.circleMarker([closest.lat, closest.lon], {
+                mapHighlightMarker = L.circleMarker([point.lat, point.lon], {
                     radius: 6,
                     color: 'orange',
                     fillColor: 'yellow',
                     fillOpacity: 1
                 }).addTo(map);
             } else {
-                mapHighlightMarker.setLatLng([closest.lat, closest.lon]);
-            }
-            
-            // Sync Chart
-            if (typeof fuelChart !== 'undefined' && fuelChart) {
-                const chartArea = fuelChart.chartArea;
-                fuelChart.setActiveElements([{datasetIndex: 0, index: closestIdx}]);
-                fuelChart.tooltip.setActiveElements([{datasetIndex: 0, index: closestIdx}]);
-                fuelChart.update();
+                mapHighlightMarker.setLatLng([point.lat, point.lon]);
             }
         } else {
             els.hoverInfo.textContent = 'Кликните на маршрут для информации...';
@@ -93,8 +93,21 @@ function initMap() {
                 map.removeLayer(mapHighlightMarker);
                 mapHighlightMarker = null;
             }
-            
-            // Clear Chart Highlight
+        }
+    });
+
+    // 2. Click: Sync Chart
+    map.on('click', function(e) {
+        const result = findClosest(e.latlng);
+        
+        if (result) {
+            const { index } = result;
+            if (typeof fuelChart !== 'undefined' && fuelChart) {
+                fuelChart.setActiveElements([{datasetIndex: 0, index: index}]);
+                fuelChart.tooltip.setActiveElements([{datasetIndex: 0, index: index}]);
+                fuelChart.update();
+            }
+        } else {
             if (typeof fuelChart !== 'undefined' && fuelChart) {
                 fuelChart.setActiveElements([]);
                 fuelChart.tooltip.setActiveElements([]);
