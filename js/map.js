@@ -47,14 +47,25 @@ function initMap() {
                 mapHighlightMarker.setLatLng([closest.lat, closest.lon]);
             }
             
-            // Sync Chart (optional, might be heavy)
-            // fuelChart.setActiveElements([{datasetIndex: 0, index: closestIdx}]);
-            // fuelChart.update();
+            // Sync Chart
+            if (typeof fuelChart !== 'undefined' && fuelChart) {
+                const chartArea = fuelChart.chartArea;
+                fuelChart.setActiveElements([{datasetIndex: 0, index: closestIdx}]);
+                fuelChart.tooltip.setActiveElements([{datasetIndex: 0, index: closestIdx}]);
+                fuelChart.update();
+            }
         } else {
             els.hoverInfo.textContent = 'Наведите на маршрут для информации...';
             if (mapHighlightMarker) {
                 map.removeLayer(mapHighlightMarker);
                 mapHighlightMarker = null;
+            }
+            
+            // Clear Chart Highlight
+            if (typeof fuelChart !== 'undefined' && fuelChart) {
+                fuelChart.setActiveElements([]);
+                fuelChart.tooltip.setActiveElements([]);
+                fuelChart.update();
             }
         }
     });
