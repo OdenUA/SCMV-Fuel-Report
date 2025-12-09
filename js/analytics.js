@@ -56,7 +56,7 @@ function processData(rawData) {
 function detectEvents(data) {
     const minRefuel = parseFloat(els.minRefuel.value) || 10;
     const minDrain = parseFloat(els.minDrain.value) || 10;
-    const maxConsLph = parseFloat(els.maxCons.value) || 15;
+    const maxConsLph = parseFloat(els.maxCons.value) || 30;
     const useIgnition = els.useIgnition.checked;
     
     const events = [];

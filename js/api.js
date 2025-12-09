@@ -48,9 +48,14 @@ function sendLogin() {
         return;
     }
     
-    // Save credentials
-    localStorage.setItem('dt_user', usr);
-    localStorage.setItem('dt_pwd', pwd);
+    // Save credentials if "Remember Me" is checked
+    if (els.rememberMe.checked) {
+        localStorage.setItem('dt_user', usr);
+        localStorage.setItem('dt_pwd', pwd);
+    } else {
+        localStorage.removeItem('dt_user');
+        localStorage.removeItem('dt_pwd');
+    }
     
     authData.usr = usr;
     authData.pwd = pwd;

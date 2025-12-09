@@ -2,6 +2,7 @@
 var els = {
     loginUser: document.getElementById('loginUser'),
     loginPass: document.getElementById('loginPassword'),
+    rememberMe: document.getElementById('rememberMe'),
     connectBtn: document.getElementById('connectBtn'),
     status: document.getElementById('connectionStatus'),
     deviceId: document.getElementById('deviceId'),

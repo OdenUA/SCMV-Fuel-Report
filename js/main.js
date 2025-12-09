@@ -3,13 +3,17 @@ function init() {
     // Restore credentials
     const savedUser = localStorage.getItem('dt_user');
     const savedPwd = localStorage.getItem('dt_pwd');
-    if (savedUser) els.loginUser.value = savedUser;
-    if (savedPwd) els.loginPass.value = savedPwd;
-
-    // Auto-connect if credentials exist
+    
     if (savedUser && savedPwd) {
+        els.loginUser.value = savedUser;
+        els.loginPass.value = savedPwd;
+        els.rememberMe.checked = true;
+        
+        // Auto-connect if credentials exist
         // Small delay to ensure UI is ready
         setTimeout(connect, 500);
+    } else {
+        els.rememberMe.checked = false;
     }
     
     // Set default dates (Today)
