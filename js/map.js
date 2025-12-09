@@ -20,23 +20,50 @@ function initMap() {
         // Optimization: only search if within bounds
         if (!map.getBounds().contains(e.latlng)) return;
 
-        // Find closest point in data
-        // Optimization: Use squared Euclidean distance on lat/lon for speed
-        // instead of heavy distanceTo() (Haversine) in the loop.
+        // Find closest point using Spatial Index
         let minSqDist = Infinity;
         let closestIdx = -1;
         const mLat = e.latlng.lat;
         const mLon = e.latlng.lng;
         
-        for (let i = 0; i < currentData.length; i++) {
-            const p = currentData[i];
-            const dLat = p.lat - mLat;
-            const dLon = p.lon - mLon;
-            const sqDist = dLat*dLat + dLon*dLon;
+        if (spatialIndex) {
+            const scale = spatialIndex.scale;
+            const x = Math.floor(mLat * scale);
+            const y = Math.floor(mLon * scale);
             
-            if (sqDist < minSqDist) {
-                minSqDist = sqDist;
-                closestIdx = i;
+            // Check current cell and 8 neighbors
+            for (let dx = -1; dx <= 1; dx++) {
+                for (let dy = -1; dy <= 1; dy++) {
+                    const key = `${x+dx},${y+dy}`;
+                    const indices = spatialIndex.grid[key];
+                    if (indices) {
+                        for (let k = 0; k < indices.length; k++) {
+                            const idx = indices[k];
+                            const p = currentData[idx];
+                            const dLat = p.lat - mLat;
+                            const dLon = p.lon - mLon;
+                            const sqDist = dLat*dLat + dLon*dLon;
+                            
+                            if (sqDist < minSqDist) {
+                                minSqDist = sqDist;
+                                closestIdx = idx;
+                            }
+                        }
+                    }
+                }
+            }
+        } else {
+            // Fallback to linear search if index not ready
+            for (let i = 0; i < currentData.length; i++) {
+                const p = currentData[i];
+                const dLat = p.lat - mLat;
+                const dLon = p.lon - mLon;
+                const sqDist = dLat*dLat + dLon*dLon;
+                
+                if (sqDist < minSqDist) {
+                    minSqDist = sqDist;
+                    closestIdx = i;
+                }
             }
         }
         

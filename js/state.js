@@ -9,3 +9,5 @@ var currentData = [];
 var processedEvents = [];
 var mapHighlightMarker = null;
 var polyline = null;
+var spatialIndex = null; // { grid: {}, scale: 100 }
+

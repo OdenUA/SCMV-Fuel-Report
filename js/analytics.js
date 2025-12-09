@@ -47,6 +47,9 @@ function processData(rawData) {
     
     currentData = data;
     
+    // Build Spatial Index for fast map hover
+    buildSpatialIndex(data);
+
     // 3. Detect Events
     detectEvents(data);
     
@@ -206,6 +209,25 @@ function detectEvents(data) {
     if (currentDrain) finalizeDrain(currentDrain);
     
     processedEvents = events;
+}
+
+function buildSpatialIndex(data) {
+    // Simple grid-based spatial index
+    // Scale 100 means ~1.1km grid cells at equator
+    const scale = 100; 
+    const grid = {};
+    
+    for (let i = 0; i < data.length; i++) {
+        const p = data[i];
+        const x = Math.floor(p.lat * scale);
+        const y = Math.floor(p.lon * scale);
+        const key = `${x},${y}`;
+        
+        if (!grid[key]) grid[key] = [];
+        grid[key].push(i);
+    }
+    
+    spatialIndex = { grid, scale };
 }
 
 function calculateStats(data, events) {
