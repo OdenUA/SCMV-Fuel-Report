@@ -181,3 +181,79 @@ tr:hover {
     border: 1px solid #999;
     padding: 2px 5px;
 }
+
+/* Vehicle Select Overlay */
+.input-with-btn {
+    display: flex;
+    gap: 5px;
+}
+.input-with-btn input {
+    flex: 1;
+}
+
+.vehicle-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    z-index: 10050;
+}
+.vehicle-overlay-content {
+    background: #fff;
+    position: absolute;
+    top: 20px;
+    bottom: 20px;
+    left: 100px;
+    right: 100px;
+    display: flex;
+    flex-direction: column;
+    border-radius: 8px;
+    box-shadow: 0 0 12px rgba(0,0,0,0.35);
+}
+.vehicle-overlay-header {
+    padding: 10px 14px;
+    border-bottom: 1px solid #e1e5eb;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.vehicle-overlay-title {
+    margin: 0;
+    font-size: 1.2rem;
+}
+.vehicle-overlay-toolbar {
+    padding: 8px 14px;
+    border-bottom: 1px solid #e1e5eb;
+    background: #f8f9fa;
+    display: flex;
+    gap: 10px;
+}
+.vehicle-search-input {
+    flex: 1;
+    padding: 6px 10px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+}
+.vehicle-overlay-body {
+    flex: 1;
+    overflow: auto;
+    padding: 10px;
+}
+.vehicle-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+.vehicle-table th, .vehicle-table td {
+    border: 1px solid #ddd;
+    padding: 6px;
+    text-align: left;
+}
+.vehicle-table th {
+    background-color: #f2f2f2;
+    position: sticky;
+    top: 0;
+}
+.vehicle-table tr:hover {
+    background-color: #f1f1f1;
+    cursor: pointer;
+}

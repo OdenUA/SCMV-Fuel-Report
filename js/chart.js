@@ -28,7 +28,7 @@ function initChart() {
                     time: {
                         unit: 'hour',
                         displayFormats: {
-                            hour: 'HH:mm'
+                            hour: 'dd.MM HH:mm'
                         },
                         tooltipFormat: 'dd.MM.yyyy HH:mm:ss'
                     },

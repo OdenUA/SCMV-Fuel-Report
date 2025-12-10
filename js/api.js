@@ -130,6 +130,14 @@ function handleMessage(data) {
         }
         return;
     }
+
+    // Vehicle Select Min response
+    if (data.name === "Vehicle Select Min") {
+        if (typeof handleVehicleSelectResponse === 'function') {
+            handleVehicleSelectResponse(data);
+        }
+        return;
+    }
     
     // Fuel Report response
     if (data.name === "Fuel Litres") {

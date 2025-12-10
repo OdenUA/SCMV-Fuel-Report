@@ -43,6 +43,15 @@ function init() {
     } catch (e) {
         console.error('Chart init error:', e);
     }
+
+    // Init Vehicle Select
+    try {
+        if (typeof initVehicleSelect === 'function') {
+            initVehicleSelect();
+        }
+    } catch (e) {
+        console.error('Vehicle Select init error:', e);
+    }
     
     // Event Listeners
     if (els.connectBtn) {
