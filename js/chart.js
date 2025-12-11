@@ -205,6 +205,16 @@ function renderChart(data) {
     if (!fuelChart.options.plugins.title) fuelChart.options.plugins.title = { display: true, text: '' };
     fuelChart.options.plugins.title.text = titleText;
 
+    // Also update the visible header above the chart for clearer UX
+    try {
+        const headerEl = document.getElementById('chartTitle');
+        if (headerEl) {
+            headerEl.textContent = titleText || 'График';
+        }
+    } catch (e) {
+        // ignore if DOM not ready
+    }
+
     fuelChart.update();
     // fuelChart.resetZoom(); // Optional: decide if we want to reset zoom on every update
 }
