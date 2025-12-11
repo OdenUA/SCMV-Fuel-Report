@@ -132,6 +132,11 @@ function renderMap(data) {
     trackLayer.clearLayers();
     markersLayer.clearLayers();
     
+    if (decoratorLayer) {
+        map.removeLayer(decoratorLayer);
+        decoratorLayer = null;
+    }
+
     if (data.length === 0) return;
     
     // Draw Polyline with Gap Detection
@@ -200,10 +205,6 @@ function renderMap(data) {
     if (tempSeg.length > 1) allSegments.push(tempSeg);
 
     // Create decorator
-    if (decoratorLayer) {
-        map.removeLayer(decoratorLayer);
-    }
-    
     // Check if plugin is loaded
     if (L.polylineDecorator && L.Symbol) {
         const multiPolyline = L.polyline(allSegments);

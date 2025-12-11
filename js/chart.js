@@ -87,6 +87,15 @@ function initChart() {
                 }
             },
             plugins: {
+                legend: {
+                    labels: {
+                        filter: function(item, chart) {
+                            // Only show if data exists
+                            const dataset = chart.datasets[item.datasetIndex];
+                            return dataset.data.length > 0;
+                        }
+                    }
+                },
                 zoom: {
                     zoom: {
                         wheel: { enabled: true },
@@ -163,6 +172,15 @@ function renderChart(data) {
     fuelChart.data.datasets[1].data = tempChartData;
     fuelChart.data.datasets[2].data = humChartData;
     
+    // Update Scales Visibility
+    const hasFuel = fuelChartData.length > 0;
+    const hasTemp = tempChartData.length > 0;
+    const hasHum = humChartData.length > 0;
+
+    fuelChart.options.scales.y.display = hasFuel;
+    fuelChart.options.scales.y1.display = hasTemp;
+    fuelChart.options.scales.y2.display = hasHum;
+
     fuelChart.update();
     // fuelChart.resetZoom(); // Optional: decide if we want to reset zoom on every update
 }

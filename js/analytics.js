@@ -3,7 +3,10 @@ function processData(rawData) {
     if (!rawData || rawData.length === 0) {
         console.log('Нет данных по топливу за выбранный период');
         currentData = [];
+        processedEvents = []; // Clear events
         renderChart([]);
+        renderMap([]);
+        renderTables([]);
         return;
     }
     
@@ -303,8 +306,13 @@ function calculateStats(data, events) {
     // Calculate Total Stats
     // Note: Total Start is Start of First Day, Total End is End of Last Day
     // But we should use the global data array for absolute start/end to be precise
-    const totalStartL = data[0].liters;
-    const totalEndL = data[data.length-1].liters;
+    let totalStartL = 0;
+    let totalEndL = 0;
+    
+    if (data.length > 0) {
+        totalStartL = data[0].liters;
+        totalEndL = data[data.length-1].liters;
+    }
     
     const totalRefuelVol = events.filter(e => e.type === 'refuel').reduce((sum, e) => sum + e.volume, 0);
     const totalDrainVol = events.filter(e => e.type === 'drain').reduce((sum, e) => sum + e.volume, 0);

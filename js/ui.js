@@ -72,69 +72,80 @@ function renderTables(data) {
     // --- 2. Calculate Stats ---
     const stats = calculateStats(data, processedEvents);
 
+    // Check if we have fuel data
+    const hasFuelData = data.length > 0;
+
     // --- 3. Tank Summary ---
-    els.tankSummaryBody.innerHTML = `
-        <tr>
-            <td>Топливный бак</td>
-            <td>${stats.total.startL.toFixed(2)}</td>
-            <td>${stats.total.refuelCount}</td>
-            <td>${stats.total.refuelVol.toFixed(2)}</td>
-            <td>${stats.total.drainCount}</td>
-            <td>${stats.total.drainVol.toFixed(2)}</td>
-            <td>${stats.total.endL.toFixed(2)}</td>
-            <td>${stats.total.consumption.toFixed(2)}</td>
-            <td>${stats.total.dist.toFixed(2)}</td>
-            <td>${stats.total.engineHours.toFixed(2)}</td>
-            <td>${stats.total.avgCons.toFixed(2)}</td>
-        </tr>
-        <tr style="font-weight: bold; background: #f9f9f9;">
-            <td>Все</td>
-            <td>${stats.total.startL.toFixed(2)}</td>
-            <td>${stats.total.refuelCount}</td>
-            <td>${stats.total.refuelVol.toFixed(2)}</td>
-            <td>${stats.total.drainCount}</td>
-            <td>${stats.total.drainVol.toFixed(2)}</td>
-            <td>${stats.total.endL.toFixed(2)}</td>
-            <td>${stats.total.consumption.toFixed(2)}</td>
-            <td>${stats.total.dist.toFixed(2)}</td>
-            <td>${stats.total.engineHours.toFixed(2)}</td>
-            <td>${stats.total.avgCons.toFixed(2)}</td>
-        </tr>
-    `;
+    if (hasFuelData) {
+        els.tankSummaryBody.innerHTML = `
+            <tr>
+                <td>Топливный бак</td>
+                <td>${stats.total.startL.toFixed(2)}</td>
+                <td>${stats.total.refuelCount}</td>
+                <td>${stats.total.refuelVol.toFixed(2)}</td>
+                <td>${stats.total.drainCount}</td>
+                <td>${stats.total.drainVol.toFixed(2)}</td>
+                <td>${stats.total.endL.toFixed(2)}</td>
+                <td>${stats.total.consumption.toFixed(2)}</td>
+                <td>${stats.total.dist.toFixed(2)}</td>
+                <td>${stats.total.engineHours.toFixed(2)}</td>
+                <td>${stats.total.avgCons.toFixed(2)}</td>
+            </tr>
+            <tr style="font-weight: bold; background: #f9f9f9;">
+                <td>Все</td>
+                <td>${stats.total.startL.toFixed(2)}</td>
+                <td>${stats.total.refuelCount}</td>
+                <td>${stats.total.refuelVol.toFixed(2)}</td>
+                <td>${stats.total.drainCount}</td>
+                <td>${stats.total.drainVol.toFixed(2)}</td>
+                <td>${stats.total.endL.toFixed(2)}</td>
+                <td>${stats.total.consumption.toFixed(2)}</td>
+                <td>${stats.total.dist.toFixed(2)}</td>
+                <td>${stats.total.engineHours.toFixed(2)}</td>
+                <td>${stats.total.avgCons.toFixed(2)}</td>
+            </tr>
+        `;
+    } else {
+        els.tankSummaryBody.innerHTML = `<tr><td colspan="11" style="text-align:center">Нет данных по топливу</td></tr>`;
+    }
 
     // --- 4. Daily Table ---
     els.dailyTableBody.innerHTML = '';
-    stats.daily.forEach(day => {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td>${day.date}</td>
-            <td>${day.startL.toFixed(2)}</td>
-            <td>${day.endL.toFixed(2)}</td>
-            <td>${day.refuelVol.toFixed(2)}</td>
-            <td>${day.drainVol.toFixed(2)}</td>
-            <td>${day.consumption.toFixed(2)}</td>
-            <td>${day.dist.toFixed(2)}</td>
-            <td>${day.engineHours.toFixed(2)}</td>
-            <td>${day.avgCons.toFixed(2)}</td>
-        `;
-        els.dailyTableBody.appendChild(row);
-    });
     
-    // Add Total Row to Daily Table
-    const totalRow = document.createElement('tr');
-    totalRow.style.fontWeight = 'bold';
-    totalRow.style.backgroundColor = '#f0f0f0';
-    totalRow.innerHTML = `
-        <td>Итого</td>
-        <td>${stats.total.startL.toFixed(2)}</td>
-        <td>${stats.total.endL.toFixed(2)}</td>
-        <td>${stats.total.refuelVol.toFixed(2)}</td>
-        <td>${stats.total.drainVol.toFixed(2)}</td>
-        <td>${stats.total.consumption.toFixed(2)}</td>
-        <td>${stats.total.dist.toFixed(2)}</td>
-        <td>${stats.total.engineHours.toFixed(2)}</td>
-        <td>${stats.total.avgCons.toFixed(2)}</td>
-    `;
-    els.dailyTableBody.appendChild(totalRow);
-
+    if (hasFuelData) {
+        stats.daily.forEach(day => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${day.date}</td>
+                <td>${day.startL.toFixed(2)}</td>
+                <td>${day.endL.toFixed(2)}</td>
+                <td>${day.refuelVol.toFixed(2)}</td>
+                <td>${day.drainVol.toFixed(2)}</td>
+                <td>${day.consumption.toFixed(2)}</td>
+                <td>${day.dist.toFixed(2)}</td>
+                <td>${day.engineHours.toFixed(2)}</td>
+                <td>${day.avgCons.toFixed(2)}</td>
+            `;
+            els.dailyTableBody.appendChild(row);
+        });
+        
+        // Add Total Row to Daily Table
+        const totalRow = document.createElement('tr');
+        totalRow.style.fontWeight = 'bold';
+        totalRow.style.backgroundColor = '#f0f0f0';
+        totalRow.innerHTML = `
+            <td>Итого</td>
+            <td>${stats.total.startL.toFixed(2)}</td>
+            <td>${stats.total.endL.toFixed(2)}</td>
+            <td>${stats.total.refuelVol.toFixed(2)}</td>
+            <td>${stats.total.drainVol.toFixed(2)}</td>
+            <td>${stats.total.consumption.toFixed(2)}</td>
+            <td>${stats.total.dist.toFixed(2)}</td>
+            <td>${stats.total.engineHours.toFixed(2)}</td>
+            <td>${stats.total.avgCons.toFixed(2)}</td>
+        `;
+        els.dailyTableBody.appendChild(totalRow);
+    } else {
+        els.dailyTableBody.innerHTML = '<tr><td colspan="9" style="text-align:center">Нет данных по топливу</td></tr>';
+    }
 }
