@@ -87,6 +87,10 @@ function initChart() {
                 }
             },
             plugins: {
+                title: {
+                    display: true,
+                    text: ''
+                },
                 legend: {
                     labels: {
                         filter: function(item, chart) {
@@ -180,6 +184,26 @@ function renderChart(data) {
     fuelChart.options.scales.y.display = hasFuel;
     fuelChart.options.scales.y1.display = hasTemp;
     fuelChart.options.scales.y2.display = hasHum;
+
+    // Update chart title depending on which datasets are present
+    let titleText = 'График';
+    if (hasFuel && (hasTemp || hasHum)) {
+        titleText = 'Топливо, температура и влажность';
+    } else if (hasFuel) {
+        titleText = 'График уровня топлива';
+    } else if (hasTemp && hasHum) {
+        titleText = 'График температуры и влажности';
+    } else if (hasTemp) {
+        titleText = 'График температуры';
+    } else if (hasHum) {
+        titleText = 'График влажности';
+    } else {
+        titleText = '';
+    }
+
+    if (!fuelChart.options.plugins) fuelChart.options.plugins = {};
+    if (!fuelChart.options.plugins.title) fuelChart.options.plugins.title = { display: true, text: '' };
+    fuelChart.options.plugins.title.text = titleText;
 
     fuelChart.update();
     // fuelChart.resetZoom(); // Optional: decide if we want to reset zoom on every update
