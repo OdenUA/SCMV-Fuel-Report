@@ -113,7 +113,13 @@ function requestReport() {
     els.loadBtn.disabled = true;
     els.loadBtn.textContent = 'Загрузка...';
     
-    const req = {
+    // Reset state
+    loadState.fuel = false;
+    loadState.sensors = false;
+    currentData = [];
+    sensorData = [];
+
+    const reqFuel = {
         name: "Fuel Litres",
         type: "etbl",
         mid: 2,
@@ -129,7 +135,24 @@ function requestReport() {
         lang: "en"
     };
     
-    socket.send(JSON.stringify(req));
+    const reqSensors = {
+        name: "Sensors",
+        type: "etbl",
+        mid: 2,
+        act: "filter",
+        filter: [
+            { selectedvihicleid: [deviceId] },
+            { selectedpgdatefrom: [dFrom.toISOString()] },
+            { selectedpgdateto: [dTo.toISOString()] }
+        ],
+        usr: authData.usr,
+        pwd: authData.pwd,
+        uid: authData.uid,
+        lang: "en"
+    };
+
+    socket.send(JSON.stringify(reqFuel));
+    socket.send(JSON.stringify(reqSensors));
 }
 
 function handleMessage(data) {
@@ -162,8 +185,8 @@ function handleMessage(data) {
     
     // Fuel Report response
     if (data.name === "Fuel Litres") {
-        els.loadBtn.disabled = false;
-        els.loadBtn.textContent = 'Загрузить отчет';
+        loadState.fuel = true;
+        checkLoadStatus();
         
         let rawData = [];
         if (data.res && data.res[0] && data.res[0].f) {
@@ -173,6 +196,30 @@ function handleMessage(data) {
         }
         
         processData(rawData);
+    }
+
+    // Sensors response
+    if (data.name === "Sensors") {
+        loadState.sensors = true;
+        checkLoadStatus();
+
+        let rawData = [];
+        if (data.res && data.res[0] && data.res[0].f) {
+            rawData = data.res[0].f;
+        } else if (Array.isArray(data.res)) {
+            rawData = data.res;
+        }
+
+        if (typeof processSensorData === 'function') {
+            processSensorData(rawData);
+        }
+    }
+}
+
+function checkLoadStatus() {
+    if (loadState.fuel && loadState.sensors) {
+        els.loadBtn.disabled = false;
+        els.loadBtn.textContent = 'Загрузить отчет';
     }
 }
 

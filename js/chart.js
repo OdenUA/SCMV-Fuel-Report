@@ -3,17 +3,44 @@ function initChart() {
     fuelChart = new Chart(ctx, {
         type: 'line',
         data: {
-            datasets: [{
-                label: 'Уровень топлива (л)',
-                data: [],
-                borderColor: '#0d6efd',
-                backgroundColor: 'rgba(13, 110, 253, 0.1)',
-                borderWidth: 2,
-                pointRadius: 0, // Hide points by default for performance
-                pointHoverRadius: 6,
-                fill: true,
-                tension: 0.1
-            }]
+            datasets: [
+                {
+                    label: 'Уровень топлива (л)',
+                    data: [],
+                    borderColor: '#0d6efd',
+                    backgroundColor: 'rgba(13, 110, 253, 0.1)',
+                    borderWidth: 2,
+                    pointRadius: 0, // Hide points by default for performance
+                    pointHoverRadius: 6,
+                    fill: true,
+                    tension: 0.1,
+                    yAxisID: 'y'
+                },
+                {
+                    label: 'Температура (°C)',
+                    data: [],
+                    borderColor: '#dc3545', // Red
+                    backgroundColor: 'rgba(220, 53, 69, 0.1)',
+                    borderWidth: 2,
+                    pointRadius: 0,
+                    pointHoverRadius: 6,
+                    fill: false,
+                    tension: 0.1,
+                    yAxisID: 'y1'
+                },
+                {
+                    label: 'Влажность (%)',
+                    data: [],
+                    borderColor: '#198754', // Green
+                    backgroundColor: 'rgba(25, 135, 84, 0.1)',
+                    borderWidth: 2,
+                    pointRadius: 0,
+                    pointHoverRadius: 6,
+                    fill: false,
+                    tension: 0.1,
+                    yAxisID: 'y2'
+                }
+            ]
         },
         options: {
             responsive: true,
@@ -35,7 +62,28 @@ function initChart() {
                     title: { display: true, text: 'Время' }
                 },
                 y: {
+                    type: 'linear',
+                    display: true,
+                    position: 'left',
                     title: { display: true, text: 'Литры' }
+                },
+                y1: {
+                    type: 'linear',
+                    display: true,
+                    position: 'right',
+                    title: { display: true, text: 'Температура (°C)' },
+                    grid: {
+                        drawOnChartArea: false,
+                    },
+                },
+                y2: {
+                    type: 'linear',
+                    display: true,
+                    position: 'right',
+                    title: { display: true, text: 'Влажность (%)' },
+                    grid: {
+                        drawOnChartArea: false,
+                    },
                 }
             },
             plugins: {
@@ -53,15 +101,29 @@ function initChart() {
                 tooltip: {
                     callbacks: {
                         label: function(context) {
-                            return `Топливо: ${context.parsed.y.toFixed(2)} л`;
+                            let label = context.dataset.label || '';
+                            if (label) {
+                                label += ': ';
+                            }
+                            if (context.parsed.y !== null) {
+                                label += context.parsed.y.toFixed(2);
+                                if (context.datasetIndex === 0) label += ' л';
+                                if (context.datasetIndex === 1) label += ' °C';
+                                if (context.datasetIndex === 2) label += ' %';
+                            }
+                            return label;
                         }
                     }
                 }
             },
             onHover: (e, elements) => {
                 if (elements && elements.length > 0) {
-                    const idx = elements[0].index;
-                    highlightMapPoint(idx);
+                    // Only highlight map if hovering over fuel dataset (index 0)
+                    const el = elements.find(e => e.datasetIndex === 0);
+                    if (el) {
+                        const idx = el.index;
+                        highlightMapPoint(idx);
+                    }
                 }
             }
         }
@@ -78,12 +140,29 @@ function renderChart(data) {
         console.warn('Chart not initialized, skipping render');
         return;
     }
-    const chartData = data.map(d => ({
+    
+    // Fuel Data
+    const fuelChartData = (data || []).map(d => ({
         x: d.ts,
         y: d.liters
     }));
     
-    fuelChart.data.datasets[0].data = chartData;
+    // Sensor Data (Temperature)
+    const tempChartData = (sensorData || []).filter(d => d.temp !== null).map(d => ({
+        x: d.ts,
+        y: d.temp
+    }));
+
+    // Sensor Data (Humidity)
+    const humChartData = (sensorData || []).filter(d => d.hum !== null).map(d => ({
+        x: d.ts,
+        y: d.hum
+    }));
+    
+    fuelChart.data.datasets[0].data = fuelChartData;
+    fuelChart.data.datasets[1].data = tempChartData;
+    fuelChart.data.datasets[2].data = humChartData;
+    
     fuelChart.update();
-    fuelChart.resetZoom();
+    // fuelChart.resetZoom(); // Optional: decide if we want to reset zoom on every update
 }

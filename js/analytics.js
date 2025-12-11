@@ -1,7 +1,9 @@
 // --- Data Processing ---
 function processData(rawData) {
     if (!rawData || rawData.length === 0) {
-        alert('Нет данных за выбранный период');
+        console.log('Нет данных по топливу за выбранный период');
+        currentData = [];
+        renderChart([]);
         return;
     }
     
@@ -330,3 +332,34 @@ function calculateStats(data, events) {
         }
     };
 }
+
+function processSensorData(rawData) {
+    if (!rawData || rawData.length === 0) {
+        console.log('Нет данных датчиков за выбранный период');
+        sensorData = [];
+        // If fuel data is present, re-render to ensure chart is up to date (e.g. clearing old sensor data)
+        if (currentData && currentData.length > 0) {
+            renderChart(currentData);
+        } else {
+            // If no fuel data either, render empty chart or handle as needed
+            renderChart([]); 
+        }
+        return;
+    }
+
+    let data = rawData.map(item => ({
+        ts: new Date(item.wdate).getTime(),
+        temp: item.temperature_c !== undefined ? parseFloat(item.temperature_c) : null,
+        hum: item.humidity_percent !== undefined ? parseFloat(item.humidity_percent) : null
+    }));
+
+    // Sort by time
+    data.sort((a, b) => a.ts - b.ts);
+
+    sensorData = data;
+    
+    // Re-render chart with both datasets
+    // We pass currentData (fuel) as the primary data, renderChart will pick up sensorData from global state
+    renderChart(currentData);
+}
+
