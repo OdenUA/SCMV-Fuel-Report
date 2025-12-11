@@ -258,3 +258,8 @@ tr:hover {
     background-color: #f1f1f1;
     cursor: pointer;
 }
+
+/* Hide time picker in Flatpickr */
+.flatpickr-time { display: none !important; }
+
+.input-with-btn .btn { width: auto; }

@@ -18,6 +18,11 @@
     <!-- Date handling (Date-fns bundle) -->
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
 
+    <!-- Flatpickr -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://npmcdn.com/flatpickr/dist/l10n/ru.js"></script>
+
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -54,12 +59,18 @@
     
     <div class="control-group">
         <label>Дата с</label>
-        <input type="datetime-local" id="dateFrom">
+        <div class="input-with-btn">
+            <input type="text" id="dateFrom">
+            <button type="button" id="btnDateFrom" class="btn btn-secondary" style="padding: 0 10px;">📅</button>
+        </div>
     </div>
     
     <div class="control-group">
         <label>Дата по</label>
-        <input type="datetime-local" id="dateTo">
+        <div class="input-with-btn">
+            <input type="text" id="dateTo">
+            <button type="button" id="btnDateTo" class="btn btn-secondary" style="padding: 0 10px;">📅</button>
+        </div>
     </div>
     
     <button type="button" class="settings-toggle" id="settingsToggle">⚙️ Настройки анализа</button>

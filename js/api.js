@@ -1,6 +1,14 @@
 // --- WebSocket Logic ---
+var reconnectTimer = null;
+
 function connect() {
     console.log('Connect called');
+    
+    if (reconnectTimer) {
+        clearTimeout(reconnectTimer);
+        reconnectTimer = null;
+    }
+
     if (socket) {
         socket.close();
     }
@@ -16,11 +24,17 @@ function connect() {
         sendLogin();
     };
     
-    socket.onclose = () => {
+    socket.onclose = (event) => {
         els.status.textContent = 'Отключено';
         els.status.className = 'status-indicator status-disconnected';
         els.connectBtn.disabled = false;
         els.loadBtn.disabled = true;
+
+        // Auto-reconnect if connection lost unexpectedly
+        if (!event.wasClean) {
+            els.status.textContent = 'Связь потеряна. Повтор через 3с...';
+            reconnectTimer = setTimeout(connect, 3000);
+        }
     };
     
     socket.onerror = (err) => {
@@ -81,10 +95,17 @@ function requestReport() {
     }
     
     // Convert local time to UTC ISO string for server
-    const dFrom = new Date(els.dateFrom.value);
-    const dTo = new Date(els.dateTo.value);
+    let dFrom, dTo;
     
-    if (isNaN(dFrom.getTime()) || isNaN(dTo.getTime())) {
+    if (els.dateFrom._flatpickr && els.dateTo._flatpickr) {
+        dFrom = els.dateFrom._flatpickr.selectedDates[0];
+        dTo = els.dateTo._flatpickr.selectedDates[0];
+    } else {
+        dFrom = new Date(els.dateFrom.value);
+        dTo = new Date(els.dateTo.value);
+    }
+    
+    if (!dFrom || !dTo || isNaN(dFrom.getTime()) || isNaN(dTo.getTime())) {
         alert('Некорректная дата');
         return;
     }

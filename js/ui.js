@@ -8,6 +8,8 @@ var els = {
     deviceId: document.getElementById('deviceId'),
     dateFrom: document.getElementById('dateFrom'),
     dateTo: document.getElementById('dateTo'),
+    btnDateFrom: document.getElementById('btnDateFrom'),
+    btnDateTo: document.getElementById('btnDateTo'),
     loadBtn: document.getElementById('loadBtn'),
     settingsToggle: document.getElementById('settingsToggle'),
     settingsPanel: document.getElementById('settingsPanel'),

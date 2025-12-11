@@ -21,14 +21,37 @@ function init() {
     const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
     const endOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
     
-    // Format for datetime-local: YYYY-MM-DDTHH:mm
-    const toLocalISO = (d) => {
-        const pad = (n) => n.toString().padStart(2, '0');
-        return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    // Flatpickr initialization
+    const fpConfig = {
+        enableTime: true,
+        dateFormat: "d-m-Y H:i",
+        time_24hr: true,
+        allowInput: true,
+        closeOnSelect: true,
+        locale: "ru",
+        clickOpens: false,
+        onChange: function(selectedDates, dateStr, instance) {
+            instance.close();
+        }
     };
-    
-    els.dateFrom.value = toLocalISO(startOfDay);
-    els.dateTo.value = toLocalISO(endOfDay);
+
+    const fpFrom = flatpickr(els.dateFrom, {
+        ...fpConfig,
+        defaultDate: startOfDay
+    });
+
+    const fpTo = flatpickr(els.dateTo, {
+        ...fpConfig,
+        defaultDate: endOfDay
+    });
+
+    // Bind buttons to open calendar
+    if (els.btnDateFrom) {
+        els.btnDateFrom.addEventListener('click', () => fpFrom.open());
+    }
+    if (els.btnDateTo) {
+        els.btnDateTo.addEventListener('click', () => fpTo.open());
+    }
     
     // Init Map
     try {
