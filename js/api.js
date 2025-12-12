@@ -163,11 +163,21 @@ function handleMessage(data) {
             els.status.textContent = `Подключено (UID: ${authData.uid})`;
             els.status.className = 'status-indicator status-connected';
             els.loadBtn.disabled = false;
+            
+            // Load settings for this user
+            if (typeof loadSettings === 'function') {
+                loadSettings(authData.usr);
+            }
         } else if (data.uid) {
             authData.uid = data.uid;
             els.status.textContent = `Подключено (UID: ${authData.uid})`;
             els.status.className = 'status-indicator status-connected';
             els.loadBtn.disabled = false;
+            
+            // Load settings for this user
+            if (typeof loadSettings === 'function') {
+                loadSettings(authData.usr);
+            }
         } else {
             els.status.textContent = 'Ошибка входа: ' + (data.msg || 'Unknown');
             els.status.className = 'status-indicator status-disconnected';

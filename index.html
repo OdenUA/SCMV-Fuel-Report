@@ -98,6 +98,26 @@
                 <input type="checkbox" id="useIgnitionLogic" checked> Учитывать движение (скорость)
             </label>
         </div>
+        
+        <hr style="margin: 10px 0; border: 0; border-top: 1px solid #eee;">
+        <div style="font-weight: bold; margin-bottom: 5px;">Температура / Влажность</div>
+        
+        <div class="control-group">
+            <label>Мин. Температура (°C)</label>
+            <input type="number" id="minTemp" value="-20">
+        </div>
+        <div class="control-group">
+            <label>Макс. Температура (°C)</label>
+            <input type="number" id="maxTemp" value="30">
+        </div>
+        <div class="control-group">
+            <label>Мин. Влажность (%)</label>
+            <input type="number" id="minHum" value="30">
+        </div>
+        <div class="control-group">
+            <label>Макс. Влажность (%)</label>
+            <input type="number" id="maxHum" value="80">
+        </div>
     </div>
     
     <button id="loadBtn" class="btn" disabled>Загрузить отчет</button>
@@ -105,7 +125,7 @@
 
 <div class="main-content">
     <!-- Chart -->
-    <div class="card">
+    <div class="card" id="chartCard" style="display: none;">
         <h3 id="chartTitle">График</h3>
         <div class="chart-container">
             <canvas id="fuelChart"></canvas>
@@ -116,7 +136,7 @@
     </div>
     
     <!-- Map -->
-    <div class="card">
+    <div class="card" id="mapCard" style="display: none;">
         <h3>Карта маршрута и событий</h3>
         <div id="map" class="map-container"></div>
         <div id="hoverInfo" style="height: 20px; margin-top: 5px; font-size: 0.9rem; color: #333;">
@@ -125,7 +145,7 @@
     </div>
     
     <!-- Events -->
-    <div class="card">
+    <div class="card" id="eventsCard" style="display: none;">
         <h3>Заправки и сливы</h3>
         <div style="overflow-x: auto;">
             <table id="eventsTable">
@@ -146,7 +166,7 @@
     </div>
 
     <!-- Tank Summary -->
-    <div class="card">
+    <div class="card" id="tankSummaryCard" style="display: none;">
         <h3>Сводка по бакам</h3>
         <div style="overflow-x: auto;">
             <table id="tankSummaryTable" class="report-table">
@@ -177,7 +197,7 @@
     </div>
 
     <!-- Daily Table -->
-    <div class="card">
+    <div class="card" id="dailyTableCard" style="display: none;">
         <h3>Суточная таблица</h3>
         <div style="overflow-x: auto;">
             <table id="dailyTable" class="report-table">
@@ -196,6 +216,51 @@
                 </thead>
                 <tbody>
                     <tr><td colspan="9" style="text-align:center">Нет данных</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Temp Summary -->
+    <div class="card" id="tempSummaryCard" style="display: none;">
+        <h3>Сводка по температуре и влажности</h3>
+        <div style="overflow-x: auto;">
+            <table id="tempSummaryTable" class="report-table">
+                <thead>
+                    <tr>
+                        <th>Параметр</th>
+                        <th>Мин.</th>
+                        <th>Макс.</th>
+                        <th>Среднее</th>
+                        <th>Выход за границы (время)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td colspan="5" style="text-align:center">Нет данных</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Temp Daily Table -->
+    <div class="card" id="tempDailyTableCard" style="display: none;">
+        <h3>Суточная таблица (Температура/Влажность)</h3>
+        <div style="overflow-x: auto;">
+            <table id="tempDailyTable" class="report-table">
+                <thead>
+                    <tr>
+                        <th>День</th>
+                        <th>Мин. T°C</th>
+                        <th>Макс. T°C</th>
+                        <th>Ср. T°C</th>
+                        <th>Мин. Вл%</th>
+                        <th>Макс. Вл%</th>
+                        <th>Ср. Вл%</th>
+                        <th>Нарушения (T / H)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td colspan="8" style="text-align:center">Нет данных</td></tr>
                 </tbody>
             </table>
         </div>

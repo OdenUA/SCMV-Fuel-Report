@@ -6,6 +6,9 @@ function initMap() {
     
     trackLayer = L.layerGroup().addTo(map);
     markersLayer = L.layerGroup().addTo(map);
+    
+    // Force initial view to Ukraine
+    map.setView([48.3794, 31.1656], 6);
 
     // Helper to find closest point
     const findClosest = (latlng) => {
@@ -137,7 +140,11 @@ function renderMap(data) {
         decoratorLayer = null;
     }
 
-    if (data.length === 0) return;
+    if (!data || data.length === 0) {
+        // Reset to Ukraine if no data
+        map.setView([48.3794, 31.1656], 6);
+        return;
+    }
     
     // Draw Polyline with Gap Detection
     // We iterate and build segments. If time diff > GAP_THRESHOLD, we start a new segment.
@@ -230,8 +237,13 @@ function renderMap(data) {
     
     // Fit bounds
     if (data.length > 0) {
+        // Ensure map size is correct before fitting bounds
+        map.invalidateSize();
         const bounds = L.latLngBounds(data.map(d => [d.lat, d.lon]));
         map.fitBounds(bounds);
+    } else {
+        // Reset to Ukraine if no data
+        map.setView([48.3794, 31.1656], 6);
     }
     
     // Add Event Markers

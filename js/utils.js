@@ -15,3 +15,14 @@ function formatDate(date) {
     const pad = (n) => n.toString().padStart(2, '0');
     return `${pad(d.getDate())}.${pad(d.getMonth() + 1)}.${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
 }
+
+function formatDuration(ms) {
+    if (!ms) return '0м';
+    const minutes = Math.floor(ms / 60000);
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    if (hours > 0) {
+        return `${hours}ч ${mins}м`;
+    }
+    return `${mins}м`;
+}

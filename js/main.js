@@ -76,6 +76,20 @@ function init() {
         console.error('Vehicle Select init error:', e);
     }
     
+    // Initial View State
+    if (typeof toggleView === 'function') {
+        toggleView('hidden');
+    }
+    
+    // Init Settings Listeners
+    try {
+        if (typeof initSettingsListeners === 'function') {
+            initSettingsListeners();
+        }
+    } catch (e) {
+        console.error('Settings listeners init error:', e);
+    }
+    
     // Event Listeners
     if (els.connectBtn) {
         els.connectBtn.addEventListener('click', connect);

@@ -4,11 +4,21 @@ function processData(rawData) {
         console.log('Нет данных по топливу за выбранный период');
         currentData = [];
         processedEvents = []; // Clear events
-        renderChart([]);
-        renderMap([]);
-        renderTables([]);
+        // Do not clear chart immediately if we might have sensor data coming
+        // But if this is called, it means we got a response.
+        // If it's empty, we might still want to show sensor data if available.
+        // For now, let's just clear if no sensor data either.
+        if (!sensorData || sensorData.length === 0) {
+            renderChart([]);
+            renderMap([]);
+            renderTables([]);
+            toggleView('hidden'); // Hide if nothing
+        }
         return;
     }
+    
+    // Switch to Fuel View
+    toggleView('fuel');
     
     // 1. Filter and Sort
     let data = rawData.map(item => ({
@@ -366,8 +376,137 @@ function processSensorData(rawData) {
 
     sensorData = data;
     
+    // Check if we should switch to Temp View
+    // If no fuel data, switch to Temp View
+    if (!currentData || currentData.length === 0) {
+        toggleView('temp');
+        
+        // Calculate and Render Temp Stats
+        const stats = calculateTempStats(data);
+        renderTempTables(stats);
+    }
+    
     // Re-render chart with both datasets
     // We pass currentData (fuel) as the primary data, renderChart will pick up sensorData from global state
     renderChart(currentData);
+}
+
+function calculateTempStats(data) {
+    const minTempLimit = parseFloat(els.minTemp.value);
+    const maxTempLimit = parseFloat(els.maxTemp.value);
+    const minHumLimit = parseFloat(els.minHum.value);
+    const maxHumLimit = parseFloat(els.maxHum.value);
+
+    let totalTempSum = 0, totalTempCount = 0;
+    let totalHumSum = 0, totalHumCount = 0;
+    let minTemp = null, maxTemp = null;
+    let minHum = null, maxHum = null;
+    
+    let tempOutOfBoundsDuration = 0;
+    let humOutOfBoundsDuration = 0;
+
+    const days = {};
+    const getDateKey = (ts) => {
+        const d = new Date(ts);
+        const pad = (n) => n.toString().padStart(2, '0');
+        return `${pad(d.getDate())}.${pad(d.getMonth()+1)}.${d.getFullYear()}`;
+    };
+
+    for (let i = 0; i < data.length; i++) {
+        const d = data[i];
+        const key = getDateKey(d.ts);
+        
+        if (!days[key]) {
+            days[key] = {
+                date: key,
+                temps: [],
+                hums: [],
+                tempOutOfBoundsDuration: 0,
+                humOutOfBoundsDuration: 0
+            };
+        }
+
+        // Calculate duration (time until next point)
+        let duration = 0;
+        if (i < data.length - 1) {
+            duration = data[i+1].ts - d.ts;
+        }
+
+        // Temp
+        if (d.temp !== null) {
+            days[key].temps.push(d.temp);
+            totalTempSum += d.temp;
+            totalTempCount++;
+            
+            if (minTemp === null || d.temp < minTemp) minTemp = d.temp;
+            if (maxTemp === null || d.temp > maxTemp) maxTemp = d.temp;
+
+            let isViolation = false;
+            if (!isNaN(minTempLimit) && d.temp < minTempLimit) isViolation = true;
+            if (!isNaN(maxTempLimit) && d.temp > maxTempLimit) isViolation = true;
+            
+            if (isViolation) {
+                tempOutOfBoundsDuration += duration;
+                days[key].tempOutOfBoundsDuration += duration;
+            }
+        }
+
+        // Hum
+        if (d.hum !== null) {
+            days[key].hums.push(d.hum);
+            totalHumSum += d.hum;
+            totalHumCount++;
+
+            if (minHum === null || d.hum < minHum) minHum = d.hum;
+            if (maxHum === null || d.hum > maxHum) maxHum = d.hum;
+
+            let isViolation = false;
+            if (!isNaN(minHumLimit) && d.hum < minHumLimit) isViolation = true;
+            if (!isNaN(maxHumLimit) && d.hum > maxHumLimit) isViolation = true;
+            
+            if (isViolation) {
+                humOutOfBoundsDuration += duration;
+                days[key].humOutOfBoundsDuration += duration;
+            }
+        }
+    }
+
+    // Process Daily Stats
+    const dailyStats = Object.values(days).map(day => {
+        const tMin = day.temps.length ? Math.min(...day.temps) : null;
+        const tMax = day.temps.length ? Math.max(...day.temps) : null;
+        const tAvg = day.temps.length ? day.temps.reduce((a,b)=>a+b,0)/day.temps.length : null;
+        
+        const hMin = day.hums.length ? Math.min(...day.hums) : null;
+        const hMax = day.hums.length ? Math.max(...day.hums) : null;
+        const hAvg = day.hums.length ? day.hums.reduce((a,b)=>a+b,0)/day.hums.length : null;
+
+        return {
+            date: day.date,
+            minTemp: tMin, maxTemp: tMax, avgTemp: tAvg,
+            minHum: hMin, maxHum: hMax, avgHum: hAvg,
+            tempOutOfBoundsDuration: day.tempOutOfBoundsDuration,
+            humOutOfBoundsDuration: day.humOutOfBoundsDuration
+        };
+    });
+
+    // Sort Daily
+    dailyStats.sort((a, b) => {
+        const [d1, m1, y1] = a.date.split('.').map(Number);
+        const [d2, m2, y2] = b.date.split('.').map(Number);
+        return new Date(y1, m1-1, d1) - new Date(y2, m2-1, d2);
+    });
+
+    return {
+        daily: dailyStats,
+        total: {
+            minTemp, maxTemp,
+            avgTemp: totalTempCount > 0 ? totalTempSum / totalTempCount : null,
+            minHum, maxHum,
+            avgHum: totalHumCount > 0 ? totalHumSum / totalHumCount : null,
+            tempOutOfBoundsDuration,
+            humOutOfBoundsDuration
+        }
+    };
 }
 
