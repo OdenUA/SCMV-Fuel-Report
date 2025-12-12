@@ -85,4 +85,4 @@ npx http-server -p 8000
 Контакт
 - Репозиторий: https://github.com/OdenUA/SCMV-Fuel-Report
 
-Если нужно — добавлю раздел с описанием API сообщений WebSocket и примером ответов сервера.
+
