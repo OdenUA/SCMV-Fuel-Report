@@ -93,8 +93,17 @@ function requestReport() {
         alert('Введите ID устройства');
         return;
     }
-    
-    // Convert local time to UTC ISO string for server
+
+    // Server returns `wdate` as `YYYY-MM-DDTHH:mm:ss` (no timezone).
+    // Sending `toISOString()` converts local time to UTC and can shift the date
+    // (e.g. 15.12 00:00 local -> 14.12 22:00Z). The backend appears to treat
+    // incoming strings as local/naive, so we must send local date-time.
+    const toServerDateTime = (date) => {
+        const d = new Date(date);
+        const pad = (n) => n.toString().padStart(2, '0');
+        return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+    };
+
     let dFrom, dTo;
     
     if (els.dateFrom._flatpickr && els.dateTo._flatpickr) {
@@ -109,6 +118,15 @@ function requestReport() {
         alert('Некорректная дата');
         return;
     }
+
+    // Normalize seconds so ranges like 23:59 include the whole minute.
+    const fromDate = new Date(dFrom.getTime());
+    const toDate = new Date(dTo.getTime());
+    fromDate.setSeconds(0, 0);
+    toDate.setSeconds(59, 0);
+
+    const fromStr = toServerDateTime(fromDate);
+    const toStr = toServerDateTime(toDate);
     
     els.loadBtn.disabled = true;
     els.loadBtn.textContent = 'Загрузка...';
@@ -125,8 +143,8 @@ function requestReport() {
         mid: 2,
         act: "filter",
         filter: [
-            { selectedpgdateto: [dTo.toISOString()] },
-            { selectedpgdatefrom: [dFrom.toISOString()] },
+            { selectedpgdateto: [toStr] },
+            { selectedpgdatefrom: [fromStr] },
             { selectedvihicleid: [deviceId] }
         ],
         usr: authData.usr,
@@ -142,8 +160,8 @@ function requestReport() {
         act: "filter",
         filter: [
             { selectedvihicleid: [deviceId] },
-            { selectedpgdatefrom: [dFrom.toISOString()] },
-            { selectedpgdateto: [dTo.toISOString()] }
+            { selectedpgdatefrom: [fromStr] },
+            { selectedpgdateto: [toStr] }
         ],
         usr: authData.usr,
         pwd: authData.pwd,
